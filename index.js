@@ -1,9 +1,12 @@
-
+import db from "./database.js";
 import http from "http";
 import path, { resolve } from "path";
 import fs from "fs";
 import {Server} from "socket.io";
-
+import database, { getMessages } from "./database.js";
+await database();
+import { getMessages } from "./database.js"
+console.log(getMessages())
 
 
 
