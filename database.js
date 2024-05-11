@@ -51,3 +51,12 @@ export async function addMessage(msg, userid) {
         console.error(error);
     }
 }
+
+export async function isExistUser(login, password) {
+    try {
+        let candidate =await db.all(`SELECT * FROM user WHERE login = ?`, [login]);
+        return !candidate.length
+    } catch (error) {
+        console.error(error);
+    }
+}
