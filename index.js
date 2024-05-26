@@ -4,6 +4,7 @@ import path, { resolve } from "path";
 import fs from "fs";
 import { Server } from "socket.io";
 import { getMessages, addMessage, isExistUser, addUser, getAuthToken} from "./database.js";
+import cookie from "cookie";
 
 const validTokens = [];
 
@@ -26,12 +27,12 @@ let loginHTML = fs.readFileSync(pathToLoginHTML);
 
 let server = http.createServer((req, res) => {
     try {
-        if (req.url === "/" && req.method == "GET") {
-            return res.end(indexHTMLFile);
-        }
-        if (req.url === "/script.js" && req.method == "GET") {
-            return res.end(ScriptFile);
-        }
+        // if (req.url === "/" && req.method == "GET") {
+        //     return res.end(indexHTMLFile);
+        // }
+        // if (req.url === "/script.js" && req.method == "GET") {
+        //     return res.end(ScriptFile);
+        // }
         if (req.url === "/style.css" && req.method == "GET") {
             return res.end(StyleFile);
         }
@@ -53,8 +54,8 @@ let server = http.createServer((req, res) => {
         if (req.url === "/api/login" && req.method == "POST") {
             return loginUser(req, res)
         }
-        res.writeHead(404, "Not Found");
-        return res.end()
+        guarded(req, res)
+        
     } catch (error) {
         console.error(error.message);
         res.writeHead(500, "Server Error");
@@ -104,7 +105,6 @@ function registerUser(req, res) {
             res.end("Error:" + error)
         }
     })
-    res.end("OK")
 }
 
 
@@ -130,4 +130,37 @@ function loginUser(req, res) {
         }
     })
     res.end("OK")
+}
+
+function getCredentials(req){
+    let cookies = cookie.parse(req.headers?.cookie || "")
+    let token = cookies?.token;
+    if(!token || !validTokens.includes(token)){
+        return null
+    }
+    let [user_id, login] = token.split(".")
+    if(!user_id || !login) return null
+    return {user_id, login}
+}
+
+function guarded(req,res){
+    const credentials = getCredentials(req)
+    try{
+        if(!credentials){
+            res.writeHead(301, {Location: "/register"})
+            res.end()
+        }else if(req.method = "GET"){
+            switch(req.url){
+                case "/":
+                    res.end(indexHTMLFile)
+                    return
+                case "/script.js":
+                    res.end(ScriptFile)
+                    return
+            }
+        }
+    }catch(err){
+        res.writeHead(404)
+        res.end(err)
+    }
 }

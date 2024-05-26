@@ -28,9 +28,9 @@ document?.querySelector(".login")?.addEventListener("submit", (event) => {
         password: password.value
     }
     let xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/register");
+    xhr.open("POST", "/api/login");
     xhr.onload = () => {
-        if(xhr.status === 200){
+        if(xhr.status == 200){
             let token = xhr.response
             document.cookie = `token=${token}`
             location.assign("/")
